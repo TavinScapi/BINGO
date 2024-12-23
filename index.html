@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roleta de Bingo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            background-color: #325d62;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 20px;
+            gap: 20px;
+        }
+
+        .bingo-board {
+            flex: 2;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            max-width: 500px;
+            margin: 0;
+        }
+
+        .controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .bingo-cell {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #000;
+            font-size: 1rem;
+            background-color: #f9f9f9;
+        }
+
+        .bingo-cell.header {
+            font-weight: bold;
+            font-size: 1.2rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            grid-column: span 2;
+        }
+
+        .bingo-cell.last-number {
+            font-weight: bold;
+            font-size: 1.2rem;
+            background-color: #4caf50;
+            color: white;
+            grid-column: span 2;
+        }
+
+        .bingo-cell.marked {
+            background-color: #ffd700;
+            color: black;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .number-roll {
+            font-size: 5.0rem;
+            font-weight: bold;
+            margin: 20px 0;
+            height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Tabuleiro -->
+        <div class="bingo-board" id="bingo-board"></div>
+
+        <!-- Controles da Roleta -->
+        <div class="controls">
+            <br><br><br><br>
+            <h1>Bingo</h1>
+            <button id="generate-number">Sortear Número</button>
+            <h2 id="current-number">Número Atual: -</h2>
+            <div class="number-roll" id="number-roll"></div>
+            <br><br><br><br><br><br>
+            <button id="reset-board">Reiniciar Bingo</button>
+        </div>
+    </div>
+
+    <script>
+        const totalNumbers = 75;
+        const drawnNumbers = new Set();
+        const board = document.getElementById('bingo-board');
+        const currentNumberDisplay = document.getElementById('current-number');
+        const numberRollDisplay = document.getElementById('number-roll');
+        let rolling = false;
+
+        function initializeBoard() {
+            const columns = {
+                B: { range: [1, 15] },
+                I: { range: [16, 30] },
+                N: { range: [31, 45] },
+                G: { range: [46, 60] },
+                O: { range: [61, 75] },
+            };
+
+            for (const column in columns) {
+                const header = document.createElement('div');
+                header.className = 'bingo-cell header';
+                header.textContent = column;
+                board.appendChild(header);
+            }
+
+            for (let i = 0; i < 7; i++) {
+                for (const column in columns) {
+                    const [start, end] = columns[column].range;
+                    const firstNumber = start + i * 2;
+                    const secondNumber = firstNumber + 1;
+
+                    if (firstNumber <= end) {
+                        const cell1 = document.createElement('div');
+                        cell1.className = 'bingo-cell';
+                        cell1.textContent = firstNumber;
+                        cell1.id = `cell-${firstNumber}`;
+                        board.appendChild(cell1);
+                    }
+
+                    if (secondNumber <= end) {
+                        const cell2 = document.createElement('div');
+                        cell2.className = 'bingo-cell';
+                        cell2.textContent = secondNumber;
+                        cell2.id = `cell-${secondNumber}`;
+                        board.appendChild(cell2);
+                    }
+                }
+            }
+
+            for (const column in columns) {
+                const [start, end] = columns[column].range;
+                const lastCell = document.createElement('div');
+                lastCell.className = 'bingo-cell last-number';
+                lastCell.textContent = end;
+                lastCell.id = `cell-${end}`;
+                board.appendChild(lastCell);
+            }
+        }
+
+        function generateNumber() {
+            if (rolling) return; // Impede que a rolagem seja iniciada novamente
+
+            if (drawnNumbers.size >= totalNumbers) {
+                alert('Todos os números já foram sorteados!');
+                return;
+            }
+
+            let number;
+            do {
+                number = Math.floor(Math.random() * totalNumbers) + 1;
+            } while (drawnNumbers.has(number));
+
+            animateRoll(number); // Chama a animação
+        }
+
+        function animateRoll(finalNumber) {
+            rolling = true;
+            let count = 0;
+            let interval = 50; // Intervalo inicial entre as trocas de número
+
+            function roll() {
+                // Gera um número aleatório não sorteado
+                const remainingNumbers = Array.from({ length: totalNumbers }, (_, i) => i + 1).filter(n => !drawnNumbers.has(n));
+                const randomNum = remainingNumbers[Math.floor(Math.random() * remainingNumbers.length)];
+                numberRollDisplay.textContent = randomNum; // Exibe o número no elemento de rotação
+
+                count++;
+                if (count > 20) { // Para a rotação após 20 iterações
+                    finalizeNumber(finalNumber);
+                } else {
+                    interval += 10; // Aumenta o intervalo para desacelerar a rotação
+                    setTimeout(roll, interval);
+                }
+            }
+
+            roll();
+        }
+
+        function finalizeNumber(number) {
+            drawnNumbers.add(number);
+            markNumber(number);
+            currentNumberDisplay.textContent = `Número Atual: ${number}`;
+            numberRollDisplay.textContent = number; // Exibe o número final
+            rolling = false;
+        }
+
+
+        function markNumber(number) {
+            const cell = document.getElementById(`cell-${number}`);
+            if (cell) {
+                cell.classList.add('marked');
+            }
+        }
+
+
+
+        document.getElementById('generate-number').addEventListener('click', generateNumber);
+        document.getElementById('reset-board').addEventListener('click', () => {
+            drawnNumbers.clear();
+            Array.from(document.querySelectorAll('.bingo-cell.marked')).forEach(cell => cell.classList.remove('marked'));
+            currentNumberDisplay.textContent = 'Número Atual: -';
+            numberRollDisplay.textContent = '';
+        });
+
+        initializeBoard();
+    </script>
+</body>
+
+</html>
