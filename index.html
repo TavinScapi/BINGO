@@ -224,6 +224,14 @@ const drawn = new Set();
 let rolling = false;
 const historico = [];
 
+// ===== BroadcastChannel =====
+const bc = new BroadcastChannel('bingo-channel');
+bc.onmessage = (event) => {
+    if (event.data.type === 'bingo') {
+        alert(`Bingo! Cartela ID: ${event.data.id}`);
+    }
+};
+
 function initializeBoard() {
     board.innerHTML = '';
 

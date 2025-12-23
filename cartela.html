@@ -83,6 +83,9 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id") || "default";
 const random = seedRandom(id);
 
+// ===== BroadcastChannel =====
+const bc = new BroadcastChannel('bingo-channel');
+
 // ===== Gerar números =====
 function gerarNumeros(min, max) {
     const nums = [];
@@ -102,9 +105,40 @@ const colunas = [
 ];
 
 const cartela = document.getElementById("cartela");
+const cells = [];
+
+// ===== Função para verificar bingo =====
+function checkBingo() {
+    // Verificar linhas
+    for (let row = 0; row < 5; row++) {
+        if (cells[row].every(cell => cell.classList.contains('marcada') || cell.classList.contains('free'))) {
+            return true;
+        }
+    }
+    // Verificar colunas
+    for (let col = 0; col < 5; col++) {
+        let marked = true;
+        for (let row = 0; row < 5; row++) {
+            if (!cells[row][col].classList.contains('marcada') && !cells[row][col].classList.contains('free')) {
+                marked = false;
+                break;
+            }
+        }
+        if (marked) return true;
+    }
+    // Verificar diagonais
+    let diag1 = true, diag2 = true;
+    for (let i = 0; i < 5; i++) {
+        if (!cells[i][i].classList.contains('marcada') && !cells[i][i].classList.contains('free')) diag1 = false;
+        if (!cells[i][4-i].classList.contains('marcada') && !cells[i][4-i].classList.contains('free')) diag2 = false;
+    }
+    if (diag1 || diag2) return true;
+    return false;
+}
 
 // ===== Render da cartela =====
 for (let linha = 0; linha < 5; linha++) {
+    cells[linha] = [];
     for (let coluna = 0; coluna < 5; coluna++) {
 
         const cell = document.createElement("div");
@@ -116,9 +150,16 @@ for (let linha = 0; linha < 5; linha++) {
             cell.innerHTML = `<img src="indio.png" alt="FREE">`;
         } else {
             cell.textContent = colunas[coluna][linha];
-            cell.onclick = () => cell.classList.toggle("marcada");
+            cell.onclick = () => {
+                cell.classList.toggle("marcada");
+                if (checkBingo()) {
+                    bc.postMessage({type: 'bingo', id: id});
+                    alert('BINGO! Você ganhou!');
+                }
+            };
         }
 
+        cells[linha][coluna] = cell;
         cartela.appendChild(cell);
     }
 }
