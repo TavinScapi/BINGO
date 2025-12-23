@@ -3,21 +3,60 @@
 
 <head>
     <meta charset="UTF-8">
+
+    <!-- DESATIVA ZOOM / PINÇA -->
+    <meta name="viewport"
+        content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>Minha Cartela</title>
 
     <style>
-        body {
+        /* REMOVE SCROLL TOTAL */
+        html, body {
             margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #0f3d2e, #1e7f43);
             color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
         }
 
-        /* DESKTOP */
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* B I N G O */
+        .bingo-header {
+            display: grid;
+            grid-template-columns: repeat(5, 160px);
+            gap: 12px;
+        }
+
+        .bingo-header div {
+            height: 80px;
+            background: linear-gradient(135deg, #c62828, #8e1b1b);
+            border-radius: 16px;
+            font-size: 48px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* CARTELA */
         .cartela {
             display: grid;
             grid-template-columns: repeat(5, 160px);
@@ -42,6 +81,7 @@
             justify-content: center;
             cursor: pointer;
             transition: 0.2s;
+            user-select: none;
         }
 
         .celula:hover {
@@ -64,15 +104,60 @@
         .celula.free img {
             width: 70%;
             filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+            pointer-events: none;
+        }
+
+        /* BOTÃO */
+        button {
+            padding: 16px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ffd700, #c9a800);
+            color: #000;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
+        }
+
+        button:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
 
 <body>
 
-    <div class="cartela" id="cartela"></div>
+    <div class="wrapper">
+
+        <!-- B I N G O -->
+        <div class="bingo-header">
+            <div>B</div>
+            <div>I</div>
+            <div>N</div>
+            <div>G</div>
+            <div>O</div>
+        </div>
+
+        <!-- CARTELA -->
+        <div class="cartela" id="cartela"></div>
+
+        <!-- BOTÃO -->
+        <button onclick="confirmarNovaCartela()">Gerar nova cartela</button>
+
+    </div>
 
     <script>
+        // BLOQUEIA ZOOM POR GESTO EXTRA (iOS)
+        document.addEventListener('gesturestart', e => e.preventDefault());
+        document.addEventListener('gesturechange', e => e.preventDefault());
+        document.addEventListener('gestureend', e => e.preventDefault());
+
         function seedRandom(seed) {
             let h = 0;
             for (let i = 0; i < seed.length; i++) {
@@ -84,11 +169,7 @@
             };
         }
 
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get("id") || "default";
-        const random = seedRandom(id);
-
-        function gerarNumeros(min, max) {
+        function gerarNumeros(random, min, max) {
             const nums = [];
             while (nums.length < 5) {
                 const n = Math.floor(random() * (max - min + 1)) + min;
@@ -97,33 +178,47 @@
             return nums;
         }
 
-        const colunas = [
-            gerarNumeros(1, 15),
-            gerarNumeros(16, 30),
-            gerarNumeros(31, 45),
-            gerarNumeros(46, 60),
-            gerarNumeros(61, 75)
-        ];
+        function gerarCartela(seed) {
+            const random = seedRandom(seed);
+            const colunas = [
+                gerarNumeros(random, 1, 15),
+                gerarNumeros(random, 16, 30),
+                gerarNumeros(random, 31, 45),
+                gerarNumeros(random, 46, 60),
+                gerarNumeros(random, 61, 75)
+            ];
 
-        const cartela = document.getElementById("cartela");
+            const cartela = document.getElementById("cartela");
+            cartela.innerHTML = "";
 
-        for (let linha = 0; linha < 5; linha++) {
-            for (let coluna = 0; coluna < 5; coluna++) {
+            for (let linha = 0; linha < 5; linha++) {
+                for (let coluna = 0; coluna < 5; coluna++) {
 
-                const cell = document.createElement("div");
-                cell.classList.add("celula");
+                    const cell = document.createElement("div");
+                    cell.classList.add("celula");
 
-                if (linha === 2 && coluna === 2) {
-                    cell.classList.add("free");
-                    cell.innerHTML = `<img src="a.webp" alt="FREE">`;
-                } else {
-                    cell.textContent = colunas[coluna][linha];
-                    cell.onclick = () => cell.classList.toggle("marcada");
+                    if (linha === 2 && coluna === 2) {
+                        cell.classList.add("free");
+                        cell.innerHTML = `<img src="a.webp" alt="FREE">`;
+                    } else {
+                        cell.textContent = colunas[coluna][linha];
+                        cell.onclick = () => cell.classList.toggle("marcada");
+                    }
+
+                    cartela.appendChild(cell);
                 }
-
-                cartela.appendChild(cell);
             }
         }
+
+        function confirmarNovaCartela() {
+            if (confirm("Tem certeza que deseja gerar uma nova cartela?")) {
+                const novoSeed = Math.random().toString(36).substring(2);
+                gerarCartela(novoSeed);
+            }
+        }
+
+        // Inicial
+        gerarCartela("default");
     </script>
 
 </body>
