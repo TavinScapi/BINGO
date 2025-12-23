@@ -6,280 +6,7 @@
     <title>Bingo</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #1f3c40, #325d62);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-        }
-
-        .container {
-            background: #0f2e32;
-            padding: 25px;
-            border-radius: 18px;
-            display: flex;
-            gap: 30px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-            flex-wrap: wrap;
-            max-width: 1100px;
-            width: 100%;
-        }
-
-        /* TABULEIRO (NÃO ALTERADO) */
-        .bingo-board {
-            flex: 2;
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 6px;
-            max-width: 520px;
-        }
-
-        .bingo-cell {
-            background: #f5f5f5;
-            color: #000;
-            border-radius: 6px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            aspect-ratio: 1;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-        }
-
-        .bingo-cell.header {
-            grid-column: span 2;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: #fff;
-            font-size: 1.4rem;
-        }
-
-        .bingo-cell.footer {
-            grid-column: span 2;
-            background: linear-gradient(135deg, #4caf50, #2e7d32);
-            color: #fff;
-            font-size: 1.4rem;
-        }
-
-        .bingo-cell.marked {
-            background: #ffd700;
-            box-shadow: inset 0 0 0 3px #c9a800;
-        }
-
-        .controls {
-            flex: 1;
-            background: #123a3f;
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* TOPO */
-        .controls-top {
-            text-align: center;
-        }
-
-        .controls-top h1 {
-            margin: 0;
-            font-size: 2.4rem;
-            letter-spacing: 2px;
-        }
-
-        /* ÁREA PRINCIPAL */
-        .controls-main {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 18px;
-        }
-
-        button {
-            padding: 12px 22px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: #fff;
-            transition: all 0.2s ease;
-            width: 100%;
-        }
-
-        button:hover:not(:disabled) {
-            transform: scale(1.05);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* BOLA */
-        .number-roll {
-            height: 130px;
-            width: 130px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #fff, #ddd);
-            color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3.2rem;
-            font-weight: bold;
-            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
-        }
-
-        .number-roll.active {
-            animation: pulse 0.3s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from {
-                transform: scale(1);
-            }
-
-            to {
-                transform: scale(1.1);
-            }
-        }
-
-        /* HISTÓRICO */
-        .historico {
-            margin-top: 10px;
-            text-align: center;
-        }
-
-        .historico h3 {
-            margin-bottom: 8px;
-            font-size: 1.1rem;
-        }
-
-        .historico-lista {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .historico-item {
-            height: 70px;
-            width: 70px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #fff, #ddd);
-            color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.7rem;
-            font-weight: bold;
-            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35);
-        }
-
-        /* QR */
-        #qrcode {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* RESPONSIVO */
-        @media (max-width: 768px) {
-            .container {
-                justify-content: center;
-            }
-        }
-
-        /* TABS */
-        .tabs {
-            position: relative;
-            display: flex;
-            background: #0b2629;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            border: 1px solid #1a3a3f;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px;
-            background: none;
-            border: none;
-            color: #aaa;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 2;
-            transition: color 0.3s ease, transform 0.2s ease;
-            position: relative;
-        }
-
-        .tab-btn:hover {
-            color: #fff;
-            transform: translateY(-2px);
-        }
-
-        .tab-btn.active {
-            color: #fff;
-        }
-
-        .tab-indicator {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            transition: transform 0.3s ease;
-            z-index: 1;
-            box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.5);
-            border-radius: 12px;
-        }
-
-        .tab-content {
-            width: 100%;
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .tab-panel {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            animation: fadeSlide 0.3s ease;
-        }
-
-        .tab-panel.active {
-            display: flex;
-        }
-
-        @keyframes fadeSlide {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
-
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -501,6 +228,7 @@
         if (typeof BroadcastChannel !== 'undefined') {
             const channel = new BroadcastChannel('bingo_channel');
             channel.addEventListener('message', (event) => {
+                console.log('Mensagem recebida no index:', event.data);  // Adicione isso
                 if (event.data.type === 'BINGO_ACHIEVED') {
                     alert(`🎉 BINGO ALCANÇADO! 🎉\n\nCartela: ${event.data.cartelaId}`);
                     addWinner(event.data.cartelaId);
@@ -568,6 +296,38 @@
                 indicator.style.transform = `translateX(${index * 100}%)`;
             });
         });
+
+        function notifyParentPage() {
+            console.log('Tentando notificar bingo para cartela:', cartelaId);  // Adicione isso
+            try {
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({
+                        type: 'BINGO_ACHIEVED',
+                        cartelaId: cartelaId,
+                        message: `Cartela #${cartelaId} alcançou BINGO!`
+                    }, '*');
+                    console.log('Mensagem enviada via postMessage');  // Adicione isso
+                } else {
+                    console.log('window.opener não disponível (nova aba)');  // Adicione isso
+                }
+            } catch (e) {
+                console.error("Erro ao notificar via postMessage:", e);
+            }
+
+            // Usar BroadcastChannel
+            if (typeof BroadcastChannel !== 'undefined') {
+                const channel = new BroadcastChannel('bingo_channel');
+                channel.postMessage({
+                    type: 'BINGO_ACHIEVED',
+                    cartelaId: cartelaId,
+                    message: `Cartela #${cartelaId} alcançou BINGO!`
+                });
+                console.log('Mensagem enviada via BroadcastChannel');  // Adicione isso
+                channel.close();
+            } else {
+                console.log('BroadcastChannel não suportado');  // Adicione isso
+            }
+        }
 
     </script>
 
