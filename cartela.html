@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Minha Cartela</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #0f2e32;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.cartela {
+    display: grid;
+    grid-template-columns: repeat(5, 75px);
+    gap: 8px;
+    background: #123a3f;
+    padding: 15px;
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.5);
+}
+
+.celula {
+    width: 75px;
+    height: 75px;
+    background: #f5f5f5;
+    color: #000;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.celula:hover {
+    transform: scale(1.05);
+}
+
+.celula.marcada {
+    background: #ffd700;
+    box-shadow: inset 0 0 0 3px #c9a800;
+}
+
+.celula.free {
+    background: #222;
+    cursor: default;
+    padding: 0;
+}
+
+.celula.free img {
+    width: 70%;
+    height: auto;
+}
+</style>
+</head>
+
+<body>
+
+<div class="cartela" id="cartela"></div>
+
+<script>
+// ===== Random com seed (QR Code) =====
+function seedRandom(seed) {
+    let h = 0;
+    for (let i = 0; i < seed.length; i++) {
+        h = seed.charCodeAt(i) + ((h << 5) - h);
+    }
+    return function() {
+        h = Math.imul(48271, h) % 2147483647;
+        return (h & 2147483647) / 2147483647;
+    };
+}
+
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id") || "default";
+const random = seedRandom(id);
+
+// ===== Gerar números =====
+function gerarNumeros(min, max) {
+    const nums = [];
+    while (nums.length < 5) {
+        const n = Math.floor(random() * (max - min + 1)) + min;
+        if (!nums.includes(n)) nums.push(n);
+    }
+    return nums;
+}
+
+const colunas = [
+    gerarNumeros(1, 15),
+    gerarNumeros(16, 30),
+    gerarNumeros(31, 45),
+    gerarNumeros(46, 60),
+    gerarNumeros(61, 75)
+];
+
+const cartela = document.getElementById("cartela");
+
+// ===== Render da cartela =====
+for (let linha = 0; linha < 5; linha++) {
+    for (let coluna = 0; coluna < 5; coluna++) {
+
+        const cell = document.createElement("div");
+        cell.classList.add("celula");
+
+        // CENTRO = FREE
+        if (linha === 2 && coluna === 2) {
+            cell.classList.add("free");
+            cell.innerHTML = `<img src="indio.png" alt="FREE">`;
+        } else {
+            cell.textContent = colunas[coluna][linha];
+            cell.onclick = () => cell.classList.toggle("marcada");
+        }
+
+        cartela.appendChild(cell);
+    }
+}
+</script>
+
+</body>
+</html>

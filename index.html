@@ -1,241 +1,367 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roleta de Bingo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            margin: 0;
-            background-color: #325d62;
-        }
+<meta charset="UTF-8">
+<title>Bingo</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin: 20px;
-            gap: 20px;
-        }
+<style>
+* {
+    box-sizing: border-box;
+}
 
-        .bingo-board {
-            flex: 2;
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 5px;
-            max-width: 500px;
-            margin: 0;
-        }
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #1f3c40, #325d62);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
 
-        .controls {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            text-align: center;
-        }
+.container {
+    background: #0f2e32;
+    padding: 25px;
+    border-radius: 16px;
+    display: flex;
+    gap: 25px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    flex-wrap: wrap;
+    max-width: 1000px;
+    width: 100%;
+}
 
-        .bingo-cell {
-            aspect-ratio: 1 / 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #000;
-            font-size: 1rem;
-            background-color: #f9f9f9;
-        }
+/* TABULEIRO */
+.bingo-board {
+    flex: 2;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+    max-width: 520px;
+}
 
-        .bingo-cell.header {
-            font-weight: bold;
-            font-size: 1.2rem;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            grid-column: span 2;
-        }
+.bingo-cell {
+    background: #f5f5f5;
+    color: #000;
+    border-radius: 6px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
 
-        .bingo-cell.last-number {
-            font-weight: bold;
-            font-size: 1.2rem;
-            background-color: #4caf50;
-            color: white;
-            grid-column: span 2;
-        }
+/* CABEÇALHO BINGO */
+.bingo-cell.header {
+    grid-column: span 2;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: #fff;
+    font-size: 1.4rem;
+}
 
-        .bingo-cell.marked {
-            background-color: #ffd700;
-            color: black;
-        }
+/* RODAPÉ 15 / 30 / 45 / 60 / 75 */
+.bingo-cell.footer {
+    grid-column: span 2;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    font-size: 1.4rem;
+}
 
-        button {
-            padding: 10px 20px;
-            font-size: 1rem;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+/* MARCADO */
+.bingo-cell.marked {
+    background: #ffd700;
+    box-shadow: inset 0 0 0 3px #c9a800;
+}
 
-        button:hover {
-            background-color: #0056b3;
-        }
+/* CONTROLES */
+.controls {
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+}
 
-        .number-roll {
-            font-size: 5.0rem;
-            font-weight: bold;
-            margin: 20px 0;
-            height: 30px;
-        }
-    </style>
+.controls h1 {
+    margin: 0;
+    font-size: 2.2rem;
+}
+
+button {
+    padding: 12px 22px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: #fff;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+button:hover:not(:disabled) {
+    transform: scale(1.05);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.current {
+    font-size: 1.2rem;
+}
+
+/* BOLA DO NÚMERO */
+.number-roll {
+    height: 120px;
+    width: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff, #ddd);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease;
+}
+
+.number-roll.active {
+    animation: pulse 0.3s infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+}
+
+.historico {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.historico h3 {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.historico-lista {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.historico-item {
+    background: #222;
+    border: 2px solid #444;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 16px;
+    color: #fff;
+}
+
+#qrcode {
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        justify-content: center;
+    }
+}
+</style>
 </head>
 
 <body>
-    <div class="container">
-        <!-- Tabuleiro -->
-        <div class="bingo-board" id="bingo-board"></div>
 
-        <!-- Controles da Roleta -->
-        <div class="controls">
-            <br><br><br><br>
-            <h1>Bingo</h1>
-            <button id="generate-number">Sortear Número</button>
-            <h2 id="current-number">Número Atual: -</h2>
-            <div class="number-roll" id="number-roll"></div>
-            <br><br><br><br><br><br>
-            <button id="reset-board">Reiniciar Bingo</button>
+<div class="container">
+
+    <div class="bingo-board" id="bingo-board"></div>
+
+    <div class="controls">
+        <h1>BINGO</h1>
+
+        <button id="draw">🎰 Sortear Número</button>
+
+        <div class="number-roll" id="roll">?</div>
+
+        <div class="current" id="current">Número Atual: -</div>
+
+        <button id="reset">🔄 Reiniciar</button>
+
+        <div class="historico">
+            <h3>Últimos 5 números</h3>
+            <div class="historico-lista" id="historico"></div>
         </div>
+
+        <button onclick="gerarQRCode()">Gerar QR Code</button>
+
+        <div id="qrcode"></div>
     </div>
 
-    <script>
-        const totalNumbers = 75;
-        const drawnNumbers = new Set();
-        const board = document.getElementById('bingo-board');
-        const currentNumberDisplay = document.getElementById('current-number');
-        const numberRollDisplay = document.getElementById('number-roll');
-        let rolling = false;
+</div>
 
-        function initializeBoard() {
-            const columns = {
-                B: { range: [1, 15] },
-                I: { range: [16, 30] },
-                N: { range: [31, 45] },
-                G: { range: [46, 60] },
-                O: { range: [61, 75] },
-            };
+<script>
+const board = document.getElementById('bingo-board');
+const rollDisplay = document.getElementById('roll');
+const currentDisplay = document.getElementById('current');
+const drawBtn = document.getElementById('draw');
 
-            for (const column in columns) {
-                const header = document.createElement('div');
-                header.className = 'bingo-cell header';
-                header.textContent = column;
-                board.appendChild(header);
-            }
+const totalNumbers = 75;
+const drawn = new Set();
+let rolling = false;
+const historico = [];
 
-            for (let i = 0; i < 7; i++) {
-                for (const column in columns) {
-                    const [start, end] = columns[column].range;
-                    const firstNumber = start + i * 2;
-                    const secondNumber = firstNumber + 1;
+function initializeBoard() {
+    board.innerHTML = '';
 
-                    if (firstNumber <= end) {
-                        const cell1 = document.createElement('div');
-                        cell1.className = 'bingo-cell';
-                        cell1.textContent = firstNumber;
-                        cell1.id = `cell-${firstNumber}`;
-                        board.appendChild(cell1);
-                    }
+    const columns = {
+        B: [1, 15],
+        I: [16, 30],
+        N: [31, 45],
+        G: [46, 60],
+        O: [61, 75]
+    };
 
-                    if (secondNumber <= end) {
-                        const cell2 = document.createElement('div');
-                        cell2.className = 'bingo-cell';
-                        cell2.textContent = secondNumber;
-                        cell2.id = `cell-${secondNumber}`;
-                        board.appendChild(cell2);
-                    }
-                }
-            }
+    /* CABEÇALHO */
+    for (const col in columns) {
+        const h = document.createElement('div');
+        h.className = 'bingo-cell header';
+        h.textContent = col;
+        board.appendChild(h);
+    }
 
-            for (const column in columns) {
-                const [start, end] = columns[column].range;
-                const lastCell = document.createElement('div');
-                lastCell.className = 'bingo-cell last-number';
-                lastCell.textContent = end;
-                lastCell.id = `cell-${end}`;
-                board.appendChild(lastCell);
-            }
+    /* NÚMEROS NORMAIS */
+    for (let row = 0; row < 7; row++) {
+        for (const col in columns) {
+            const [start, end] = columns[col];
+            const n1 = start + row * 2;
+            const n2 = n1 + 1;
+
+            if (n1 < end) createCell(n1);
+            if (n2 < end) createCell(n2);
         }
+    }
 
-        function generateNumber() {
-            if (rolling) return; // Impede que a rolagem seja iniciada novamente
+    /* RODAPÉ GRANDE */
+    for (const col in columns) {
+        const end = columns[col][1];
+        const f = document.createElement('div');
+        f.className = 'bingo-cell footer';
+        f.textContent = end;
+        f.id = `cell-${end}`;
+        board.appendChild(f);
+    }
+}
 
-            if (drawnNumbers.size >= totalNumbers) {
-                alert('Todos os números já foram sorteados!');
-                return;
-            }
+function createCell(number) {
+    const cell = document.createElement('div');
+    cell.className = 'bingo-cell';
+    cell.textContent = number;
+    cell.id = `cell-${number}`;
+    board.appendChild(cell);
+}
 
-            let number;
-            do {
-                number = Math.floor(Math.random() * totalNumbers) + 1;
-            } while (drawnNumbers.has(number));
+function drawNumber() {
+    if (rolling || drawn.size === totalNumbers) return;
 
-            animateRoll(number); // Chama a animação
+    rolling = true;
+    drawBtn.disabled = true;
+    rollDisplay.classList.add('active');
+
+    let number;
+    do {
+        number = Math.floor(Math.random() * totalNumbers) + 1;
+    } while (drawn.has(number));
+
+    animate(number);
+}
+
+function animate(finalNumber) {
+    let count = 0;
+
+    function spin() {
+        rollDisplay.textContent = Math.floor(Math.random() * totalNumbers) + 1;
+        count++;
+
+        if (count > 20) {
+            finalize(finalNumber);
+        } else {
+            setTimeout(spin, 60 + count * 8);
         }
+    }
 
-        function animateRoll(finalNumber) {
-            rolling = true;
-            let count = 0;
-            let interval = 50; // Intervalo inicial entre as trocas de número
+    spin();
+}
 
-            function roll() {
-                // Gera um número aleatório não sorteado
-                const remainingNumbers = Array.from({ length: totalNumbers }, (_, i) => i + 1).filter(n => !drawnNumbers.has(n));
-                const randomNum = remainingNumbers[Math.floor(Math.random() * remainingNumbers.length)];
-                numberRollDisplay.textContent = randomNum; // Exibe o número no elemento de rotação
+function finalize(number) {
+    drawn.add(number);
+    rollDisplay.textContent = number;
+    currentDisplay.textContent = `Número Atual: ${number}`;
 
-                count++;
-                if (count > 20) { // Para a rotação após 20 iterações
-                    finalizeNumber(finalNumber);
-                } else {
-                    interval += 10; // Aumenta o intervalo para desacelerar a rotação
-                    setTimeout(roll, interval);
-                }
-            }
+    const cell = document.getElementById(`cell-${number}`);
+    if (cell) cell.classList.add('marked');
 
-            roll();
-        }
+    historico.unshift(number);
+    if (historico.length > 5) historico.pop();
+    atualizarHistorico();
 
-        function finalizeNumber(number) {
-            drawnNumbers.add(number);
-            markNumber(number);
-            currentNumberDisplay.textContent = `Número Atual: ${number}`;
-            numberRollDisplay.textContent = number; // Exibe o número final
-            rolling = false;
-        }
+    rollDisplay.classList.remove('active');
+    drawBtn.disabled = false;
+    rolling = false;
+}
 
+function atualizarHistorico() {
+    const container = document.getElementById('historico');
+    container.innerHTML = '';
 
-        function markNumber(number) {
-            const cell = document.getElementById(`cell-${number}`);
-            if (cell) {
-                cell.classList.add('marked');
-            }
-        }
+    historico.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'historico-item';
+        div.textContent = item;
+        container.appendChild(div);
+    });
+}
 
+function gerarQRCode() {
+    document.getElementById("qrcode").innerHTML = "";
 
+    const id = Math.random().toString(36).substring(2, 10);
 
-        document.getElementById('generate-number').addEventListener('click', generateNumber);
-        document.getElementById('reset-board').addEventListener('click', () => {
-            drawnNumbers.clear();
-            Array.from(document.querySelectorAll('.bingo-cell.marked')).forEach(cell => cell.classList.remove('marked'));
-            currentNumberDisplay.textContent = 'Número Atual: -';
-            numberRollDisplay.textContent = '';
-        });
+    const url = `${location.origin}/index.html?id=${id}`;
 
-        initializeBoard();
-    </script>
+    new QRCode(document.getElementById("qrcode"), {
+        text: url,
+        width: 200,
+        height: 200
+    });
+}
+
+document.getElementById('draw').addEventListener('click', drawNumber);
+
+document.getElementById('reset').addEventListener('click', () => {
+    drawn.clear();
+    document.querySelectorAll('.marked').forEach(c => c.classList.remove('marked'));
+    rollDisplay.textContent = '?';
+    currentDisplay.textContent = 'Número Atual: -';
+    historico.length = 0;
+    atualizarHistorico();
+});
+
+initializeBoard();
+</script>
+
 </body>
-
 </html>
