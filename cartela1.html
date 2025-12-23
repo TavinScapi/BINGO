@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Minha Cartela - Bingo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1f3c40, #325d62);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #0f2e32;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #1a4a50;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .cartela-id {
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            padding: 8px 20px;
+            border-radius: 30px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .instructions {
+            text-align: center;
+            margin: 15px 0 25px 0;
+            color: #b0e0e6;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .bingo-table {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+
+        .bingo-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            height: 60px;
+            font-size: 2rem;
+            font-weight: bold;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bingo-cell {
+            background: #f5f5f5;
+            color: #000;
+            border-radius: 8px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .bingo-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .bingo-cell.marked {
+            background: #ffd700;
+            box-shadow: inset 0 0 0 3px #c9a800;
+        }
+
+        .bingo-cell.marked::after {
+            content: "✓";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 1.2rem;
+            color: #2e7d32;
+        }
+
+        .free-space {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            font-size: 1rem;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .free-space.marked {
+            background: linear-gradient(135deg, #ffd700, #c9a800);
+            color: #000;
+        }
+
+        .controls {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .controls button {
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: #fff;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .controls button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
+        }
+
+        .controls button#resetBtn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.5s ease, fadeOut 0.5s ease 4.5s forwards;
+            max-width: 400px;
+            display: none;
+        }
+
+        .notification h3 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .notification p {
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        .bingo-complete {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            display: none;
+        }
+
+        .bingo-complete-content {
+            background: linear-gradient(135deg, #0f2e32, #1a4a50);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .bingo-complete h2 {
+            font-size: 3.5rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .bingo-complete p {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 15px;
+            height: 15px;
+            background: #ffd700;
+            opacity: 0;
+            z-index: 1999;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .bingo-cell {
+                height: 55px;
+                font-size: 1.1rem;
+            }
+            
+            .bingo-header {
+                height: 50px;
+                font-size: 1.8rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bingo-cell {
+                height: 45px;
+                font-size: 1rem;
+            }
+            
+            .bingo-header {
+                height: 40px;
+                font-size: 1.5rem;
+            }
+            
+            .notification {
+                max-width: 90%;
+                left: 5%;
+                right: 5%;
+            }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #b0e0e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Minha Cartela de Bingo</h1>
+            <div class="cartela-id" id="cartelaId">CARREGANDO...</div>
+        </div>
+        
+        <div class="instructions">
+            <p>Clique nos números que foram sorteados na página principal do bingo.</p>
+            <p>Complete uma linha, coluna ou diagonal para ganhar!</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="markedCount">0</div>
+                <div class="stat-label">Marcados</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="remainingCount">24</div>
+                <div class="stat-label">Restantes</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="progress">0%</div>
+                <div class="stat-label">Completo</div>
+            </div>
+        </div>
+        
+        <div class="bingo-table" id="bingoTable">
+            <!-- Gerado dinamicamente via JavaScript -->
+        </div>
+        
+        <div class="controls">
+            <button id="checkBtn">🔍 Verificar Bingo</button>
+            <button id="resetBtn">🔄 Limpar Cartela</button>
+        </div>
+    </div>
+    
+    <!-- Notificação de Bingo -->
+    <div class="bingo-complete" id="bingoComplete">
+        <div class="bingo-complete-content">
+            <h2>🎉 BINGO! 🎉</h2>
+            <p>Parabéns! Você completou sua cartela!</p>
+            <p>Sua vitória foi registrada na página principal do bingo.</p>
+            <p>ID da Cartela: <strong id="winningCartelaId"></strong></p>
+            <button onclick="closeBingoComplete()">Fechar</button>
+        </div>
+    </div>
+    
+    <!-- Notificação simples -->
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        // Obter ID da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const cartelaId = urlParams.get('id') || Math.random().toString(36).substring(2, 10).toUpperCase();
+        
+        // Elementos DOM
+        const cartelaIdElement = document.getElementById('cartelaId');
+        const bingoTable = document.getElementById('bingoTable');
+        const markedCountElement = document.getElementById('markedCount');
+        const remainingCountElement = document.getElementById('remainingCount');
+        const progressElement = document.getElementById('progress');
+        const checkBtn = document.getElementById('checkBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const bingoComplete = document.getElementById('bingoComplete');
+        const winningCartelaIdElement = document.getElementById('winningCartelaId');
+        const notification = document.getElementById('notification');
+        
+        // Configurações
+        const columns = ['B', 'I', 'N', 'G', 'O'];
+        const ranges = {
+            'B': [1, 15],
+            'I': [16, 30],
+            'N': [31, 45],
+            'G': [46, 60],
+            'O': [61, 75]
+        };
+        
+        // Estado da cartela
+        let cartelaNumbers = [];
+        let markedNumbers = new Set();
+        let bingoAchieved = false;
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Exibir ID da cartela
+            cartelaIdElement.textContent = `Cartela #${cartelaId}`;
+            
+            // Gerar cartela aleatória
+            generateBingoCard();
+            
+            // Carregar estado salvo (se existir)
+            loadSavedState();
+            
+            // Atualizar estatísticas
+            updateStats();
+            
+            // Configurar eventos
+            setupEventListeners();
+            
+            // Conectar com a página principal (se disponível)
+            setupParentConnection();
+        });
+        
+        // Gerar cartela de bingo aleatória
+        function generateBingoCard() {
+            bingoTable.innerHTML = '';
+            
+            // Adicionar cabeçalhos
+            columns.forEach(letter => {
+                const header = document.createElement('div');
+                header.className = 'bingo-header';
+                header.textContent = letter;
+                bingoTable.appendChild(header);
+            });
+            
+            // Gerar números para cada coluna
+            cartelaNumbers = [];
+            
+            columns.forEach(letter => {
+                const [min, max] = ranges[letter];
+                const columnNumbers = [];
+                
+                // Gerar 5 números únicos para cada coluna (exceto coluna N que terá 4 + espaço livre)
+                const count = letter === 'N' ? 4 : 5;
+                
+                while (columnNumbers.length < count) {
+                    const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                    if (!columnNumbers.includes(num)) {
+                        columnNumbers.push(num);
+                    }
+                }
+                
+                // Ordenar os números
+                columnNumbers.sort((a, b) => a - b);
+                
+                // Adicionar espaço livre no meio da coluna N
+                if (letter === 'N') {
+                    columnNumbers.splice(2, 0, 'FREE'); // Adiciona FREE na posição do meio
+                }
+                
+                cartelaNumbers.push(columnNumbers);
+            });
+            
+            // Adicionar células à tabela (5x5)
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const cellValue = cartelaNumbers[col][row];
+                    const cell = document.createElement('div');
+                    
+                    if (cellValue === 'FREE') {
+                        cell.className = 'bingo-cell free-space';
+                        cell.textContent = 'ESPAÇO\nLIVRE';
+                        cell.dataset.value = 'FREE';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                    } else {
+                        cell.className = 'bingo-cell';
+                        cell.textContent = cellValue;
+                        cell.dataset.value = cellValue;
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                    }
+                    
+                    bingoTable.appendChild(cell);
+                }
+            }
+        }
+        
+        // Configurar eventos
+        function setupEventListeners() {
+            // Marcar/desmarcar células
+            bingoTable.addEventListener('click', (e) => {
+                if (bingoAchieved) return;
+                
+                const cell = e.target;
+                if (cell.classList.contains('bingo-cell')) {
+                    const value = cell.dataset.value;
+                    
+                    if (value === 'FREE') {
+                        // Espaço livre é sempre marcável
+                        cell.classList.toggle('marked');
+                        if (cell.classList.contains('marked')) {
+                            markedNumbers.add('FREE');
+                        } else {
+                            markedNumbers.delete('FREE');
+                        }
+                    } else {
+                        // Números normais
+                        cell.classList.toggle('marked');
+                        if (cell.classList.contains('marked')) {
+                            markedNumbers.add(parseInt(value));
+                        } else {
+                            markedNumbers.delete(parseInt(value));
+                        }
+                    }
+                    
+                    // Atualizar estatísticas e salvar estado
+                    updateStats();
+                    saveState();
+                    
+                    // Verificar automaticamente por bingo (opcional)
+                    // autoCheckBingo();
+                }
+            });
+            
+            // Botão verificar bingo
+            checkBtn.addEventListener('click', () => {
+                checkForBingo();
+            });
+            
+            // Botão resetar
+            resetBtn.addEventListener('click', () => {
+                resetCartela();
+            });
+        }
+        
+        // Verificar se há bingo
+        function checkForBingo() {
+            if (bingoAchieved) {
+                showNotification("Você já alcançou BINGO!", "info");
+                return;
+            }
+            
+            // Verificar linhas
+            for (let row = 0; row < 5; row++) {
+                let rowComplete = true;
+                for (let col = 0; col < 5; col++) {
+                    const cellIndex = col + row * 5;
+                    const cell = bingoTable.children[5 + cellIndex]; // +5 para pular cabeçalhos
+                    if (!cell.classList.contains('marked') && !cell.classList.contains('free-space')) {
+                        rowComplete = false;
+                        break;
+                    }
+                }
+                if (rowComplete) {
+                    celebrateBingo(`Linha ${row + 1} completa!`);
+                    return;
+                }
+            }
+            
+            // Verificar colunas
+            for (let col = 0; col < 5; col++) {
+                let colComplete = true;
+                for (let row = 0; row < 5; row++) {
+                    const cellIndex = col + row * 5;
+                    const cell = bingoTable.children[5 + cellIndex];
+                    if (!cell.classList.contains('marked') && !cell.classList.contains('free-space')) {
+                        colComplete = false;
+                        break;
+                    }
+                }
+                if (colComplete) {
+                    celebrateBingo(`Coluna ${columns[col]} completa!`);
+                    return;
+                }
+            }
+            
+            // Verificar diagonal principal
+            let diag1Complete = true;
+            for (let i = 0; i < 5; i++) {
+                const cellIndex = i + i * 5;
+                const cell = bingoTable.children[5 + cellIndex];
+                if (!cell.classList.contains('marked') && !cell.classList.contains('free-space')) {
+                    diag1Complete = false;
+                    break;
+                }
+            }
+            if (diag1Complete) {
+                celebrateBingo("Diagonal principal completa!");
+                return;
+            }
+            
+            // Verificar diagonal secundária
+            let diag2Complete = true;
+            for (let i = 0; i < 5; i++) {
+                const cellIndex = (4 - i) + i * 5;
+                const cell = bingoTable.children[5 + cellIndex];
+                if (!cell.classList.contains('marked') && !cell.classList.contains('free-space')) {
+                    diag2Complete = false;
+                    break;
+                }
+            }
+            if (diag2Complete) {
+                celebrateBingo("Diagonal secundária completa!");
+                return;
+            }
+            
+            // Verificar cartela completa
+            let allComplete = true;
+            for (let i = 0; i < 25; i++) {
+                const cell = bingoTable.children[5 + i];
+                if (!cell.classList.contains('marked')) {
+                    allComplete = false;
+                    break;
+                }
+            }
+            if (allComplete) {
+                celebrateBingo("Cartela COMPLETA!");
+                return;
+            }
+            
+            showNotification("Ainda não há bingo. Continue marcando!", "info");
+        }
+        
+        // Celebrar bingo
+        function celebrateBingo(message) {
+            bingoAchieved = true;
+            
+            // Exibir mensagem de bingo
+            winningCartelaIdElement.textContent = cartelaId;
+            bingoComplete.style.display = 'flex';
+            
+            // Criar efeito de confete
+            createConfetti();
+            
+            // Notificar a página principal (se possível)
+            notifyParentPage();
+            
+            // Salvar estado
+            saveState();
+            
+            // Mostrar notificação
+            showNotification(`🎉 ${message} BINGO ALCANÇADO!`, "success");
+        }
+        
+        // Fechar tela de bingo
+        function closeBingoComplete() {
+            bingoComplete.style.display = 'none';
+        }
+        
+        // Atualizar estatísticas
+        function updateStats() {
+            const totalCells = 24; // 25 células menos o espaço livre (que conta como marcado)
+            const markedCount = markedNumbers.size - (markedNumbers.has('FREE') ? 1 : 0);
+            const remainingCount = totalCells - markedCount;
+            const progress = Math.round((markedCount / totalCells) * 100);
+            
+            markedCountElement.textContent = markedCount;
+            remainingCountElement.textContent = remainingCount;
+            progressElement.textContent = `${progress}%`;
+        }
+        
+        // Resetar cartela
+        function resetCartela() {
+            if (confirm("Tem certeza que deseja limpar toda a cartela?")) {
+                markedNumbers.clear();
+                bingoAchieved = false;
+                
+                // Remover marcações visuais
+                const cells = document.querySelectorAll('.bingo-cell');
+                cells.forEach(cell => {
+                    cell.classList.remove('marked');
+                });
+                
+                // Atualizar estatísticas
+                updateStats();
+                
+                // Salvar estado
+                saveState();
+                
+                showNotification("Cartela resetada com sucesso!", "info");
+            }
+        }
+        
+        // Mostrar notificação
+        function showNotification(message, type = "info") {
+            notification.innerHTML = `
+                <h3>${type === "success" ? "🎉 Sucesso!" : "ℹ️ Informação"}</h3>
+                <p>${message}</p>
+            `;
+            notification.style.display = 'block';
+            
+            // Auto-esconder após 5 segundos
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Criar efeito de confete
+        function createConfetti() {
+            const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'];
+            
+            for (let i = 0; i < 150; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-20px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                document.body.appendChild(confetti);
+                
+                // Animar confete
+                const animation = confetti.animate([
+                    { 
+                        top: '-20px', 
+                        opacity: 1,
+                        transform: `rotate(${Math.random() * 360}deg) translateX(0px)`
+                    },
+                    { 
+                        top: Math.random() * 100 + 'vh', 
+                        opacity: 0.7,
+                        transform: `rotate(${Math.random() * 720}deg) translateX(${Math.random() * 200 - 100}px)`
+                    }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    easing: 'cubic-bezier(0.215, 0.61, 0.355, 1)'
+                });
+                
+                // Remover após animação
+                animation.onfinish = () => {
+                    confetti.remove();
+                };
+                
+                // Iniciar animação
+                animation.play();
+            }
+        }
+        
+        // Salvar estado no localStorage
+        function saveState() {
+            const state = {
+                cartelaId: cartelaId,
+                cartelaNumbers: cartelaNumbers,
+                markedNumbers: Array.from(markedNumbers),
+                bingoAchieved: bingoAchieved,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem(`bingoCartela_${cartelaId}`, JSON.stringify(state));
+        }
+        
+        // Carregar estado do localStorage
+        function loadSavedState() {
+            const saved = localStorage.getItem(`bingoCartela_${cartelaId}`);
+            
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    
+                    // Restaurar números marcados
+                    if (state.markedNumbers) {
+                        markedNumbers = new Set(state.markedNumbers);
+                        
+                        // Aplicar marcações visuais
+                        const cells = document.querySelectorAll('.bingo-cell');
+                        cells.forEach(cell => {
+                            const value = cell.dataset.value;
+                            if (value === 'FREE' && markedNumbers.has('FREE')) {
+                                cell.classList.add('marked');
+                            } else if (markedNumbers.has(parseInt(value))) {
+                                cell.classList.add('marked');
+                            }
+                        });
+                    }
+                    
+                    // Restaurar estado de bingo
+                    if (state.bingoAchieved) {
+                        bingoAchieved = state.bingoAchieved;
+                        if (bingoAchieved) {
+                            setTimeout(() => {
+                                bingoComplete.style.display = 'flex';
+                            }, 1000);
+                        }
+                    }
+                    
+                    console.log("Estado da cartela restaurado");
+                } catch (e) {
+                    console.error("Erro ao carregar estado:", e);
+                }
+            }
+        }
+        
+        // Conectar com a página principal (opcional)
+        function setupParentConnection() {
+            // Tentar notificar a página principal sobre esta cartela
+            try {
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({
+                        type: 'CARTELA_LOADED',
+                        cartelaId: cartelaId,
+                        timestamp: new Date().toISOString()
+                    }, '*');
+                }
+            } catch (e) {
+                // Silenciosamente falhar se não puder conectar
+            }
+        }
+        
+        // Notificar a página principal sobre bingo
+        function notifyParentPage() {
+            try {
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({
+                        type: 'BINGO_ACHIEVED',
+                        cartelaId: cartelaId,
+                        timestamp: new Date().toISOString(),
+                        message: `Cartela #${cartelaId} alcançou BINGO!`
+                    }, '*');
+                    
+                    // Também tentar usar BroadcastChannel se disponível
+                    if (typeof BroadcastChannel !== 'undefined') {
+                        const channel = new BroadcastChannel('bingo_channel');
+                        channel.postMessage({
+                            type: 'BINGO_ACHIEVED',
+                            cartelaId: cartelaId,
+                            timestamp: new Date().toISOString()
+                        });
+                        channel.close();
+                    }
+                }
+            } catch (e) {
+                // Falha silenciosa se não puder notificar
+                console.log("Não foi possível notificar a página principal");
+            }
+        }
+        
+        // Verificação automática de bingo (opcional)
+        function autoCheckBingo() {
+            // Verificar apenas se tiver pelo menos 5 marcações
+            if (markedNumbers.size >= 5 && !bingoAchieved) {
+                checkForBingo();
+            }
+        }
+        
+        // Adicionar suporte para BroadcastChannel para comunicação entre abas
+        if (typeof BroadcastChannel !== 'undefined') {
+            const channel = new BroadcastChannel('bingo_numbers');
+            
+            channel.addEventListener('message', (event) => {
+                if (event.data.type === 'NUMBER_DRAWN' && !bingoAchieved) {
+                    const number = event.data.number;
+                    
+                    // Verificar se o número está na cartela
+                    const cells = document.querySelectorAll('.bingo-cell');
+                    cells.forEach(cell => {
+                        const value = parseInt(cell.dataset.value);
+                        if (value === number && !cell.classList.contains('marked')) {
+                            // Marcar automaticamente
+                            cell.classList.add('marked');
+                            markedNumbers.add(number);
+                            
+                            // Atualizar estatísticas
+                            updateStats();
+                            saveState();
+                            
+                            // Verificar por bingo
+                            autoCheckBingo();
+                            
+                            // Mostrar notificação
+                            showNotification(`Número ${number} sorteado! Marcado automaticamente.`, "info");
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Ouvir mensagens da página principal
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'NUMBER_DRAWN' && !bingoAchieved) {
+                const number = event.data.number;
+                
+                // Encontrar e marcar o número na cartela
+                const cells = document.querySelectorAll('.bingo-cell');
+                cells.forEach(cell => {
+                    const value = parseInt(cell.dataset.value);
+                    if (value === number && !cell.classList.contains('marked')) {
+                        cell.classList.add('marked');
+                        markedNumbers.add(number);
+                        
+                        // Atualizar estatísticas
+                        updateStats();
+                        saveState();
+                        
+                        // Verificar por bingo
+                        autoCheckBingo();
+                        
+                        // Mostrar notificação
+                        showNotification(`Número ${number} sorteado! Marcado automaticamente.`, "info");
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

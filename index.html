@@ -434,6 +434,90 @@
             rolling = false;
         }
 
+        // No final do script da página principal, após a função finalize()
+
+        // Função para notificar cartelas abertas sobre números sorteados
+        function notifyCartelas(number) {
+            // Notificar via postMessage para cartelas abertas
+            try {
+                // Para cada cartela aberta (se em popups)
+                // Isso funciona se as cartelas foram abertas com window.open()
+                // Para abas do mesmo navegador, usamos BroadcastChannel
+            } catch (e) {
+                console.error("Erro ao notificar cartelas:", e);
+            }
+
+            // Usar BroadcastChannel para notificar outras abas
+            if (typeof BroadcastChannel !== 'undefined') {
+                const channel = new BroadcastChannel('bingo_numbers');
+                channel.postMessage({
+                    type: 'NUMBER_DRAWN',
+                    number: number,
+                    timestamp: new Date().toISOString()
+                });
+                channel.close();
+            }
+        }
+
+        // Modificar a função finalize() para notificar as cartelas
+        function finalize(number) {
+            drawn.add(number);
+            rollDisplay.textContent = number;
+
+            const cell = document.getElementById(`cell-${number}`);
+            if (cell) cell.classList.add('marked');
+
+            historico.unshift(number);
+            if (historico.length > 5) historico.pop();
+            atualizarHistorico();
+
+            rollDisplay.classList.remove('active');
+            drawBtn.disabled = false;
+            rolling = false;
+
+            // Notificar cartelas sobre o número sorteado
+            notifyCartelas(number);
+
+            // Verificar se alguma cartela reportou bingo
+            checkForReportedBingo();
+        }
+
+        // Função para verificar bingos reportados
+        function checkForReportedBingo() {
+            // Esta função pode ser expandida para gerenciar múltiplos jogadores
+        }
+
+        // Ouvir mensagens de cartelas que alcançaram bingo
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'BINGO_ACHIEVED') {
+                alert(`🎉 ${event.data.message} 🎉\n\nCartela: ${event.data.cartelaId}`);
+
+                // Você pode adicionar a cartela a uma lista de vencedores
+                addWinner(event.data.cartelaId);
+            }
+        });
+
+        // Usar BroadcastChannel para receber mensagens de bingo
+        if (typeof BroadcastChannel !== 'undefined') {
+            const channel = new BroadcastChannel('bingo_channel');
+            channel.addEventListener('message', (event) => {
+                if (event.data.type === 'BINGO_ACHIEVED') {
+                    alert(`🎉 BINGO ALCANÇADO! 🎉\n\nCartela: ${event.data.cartelaId}`);
+                    addWinner(event.data.cartelaId);
+                }
+            });
+        }
+
+        function addWinner(cartelaId) {
+            // Implementar lógica para armazenar vencedores
+            console.log(`Cartela vencedora: ${cartelaId}`);
+
+            // Você pode mostrar uma lista de vencedores na interface
+            const winnerList = document.createElement('div');
+            winnerList.textContent = `Vencedor: Cartela ${cartelaId}`;
+            // Adicionar à interface
+        }
+
         function atualizarHistorico() {
             const container = document.getElementById('historico');
             container.innerHTML = '';
