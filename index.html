@@ -341,7 +341,7 @@ function gerarQRCode() {
     const id = Math.random().toString(36).substring(2, 10);
 
     // Substitua 'seu-username' pelo seu username do GitHub
-    const url = `https://tavinscapi.github.io/BINGO/index.html?id=${id}`;
+    const url = `https://tavinscapi.github.io/BINGO/cartela.html?id=${id}`;
 
     new QRCode(document.getElementById("qrcode"), {
         text: url,
