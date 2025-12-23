@@ -2,367 +2,491 @@
 <html lang="pt-BR">
 
 <head>
-<meta charset="UTF-8">
-<title>Bingo</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Bingo</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-<style>
-* {
-    box-sizing: border-box;
-}
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1f3c40, #325d62);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
 
-body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: linear-gradient(135deg, #1f3c40, #325d62);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-}
+        .container {
+            background: #0f2e32;
+            padding: 25px;
+            border-radius: 18px;
+            display: flex;
+            gap: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+            flex-wrap: wrap;
+            max-width: 1100px;
+            width: 100%;
+        }
 
-.container {
-    background: #0f2e32;
-    padding: 25px;
-    border-radius: 16px;
-    display: flex;
-    gap: 25px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-    flex-wrap: wrap;
-    max-width: 1000px;
-    width: 100%;
-}
+        /* TABULEIRO (NÃO ALTERADO) */
+        .bingo-board {
+            flex: 2;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 6px;
+            max-width: 520px;
+        }
 
-/* TABULEIRO */
-.bingo-board {
-    flex: 2;
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: 6px;
-    max-width: 520px;
-}
+        .bingo-cell {
+            background: #f5f5f5;
+            color: #000;
+            border-radius: 6px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
 
-.bingo-cell {
-    background: #f5f5f5;
-    color: #000;
-    border-radius: 6px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    aspect-ratio: 1;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-}
+        .bingo-cell.header {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            font-size: 1.4rem;
+        }
 
-/* CABEÇALHO BINGO */
-.bingo-cell.header {
-    grid-column: span 2;
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: #fff;
-    font-size: 1.4rem;
-}
+        .bingo-cell.footer {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: #fff;
+            font-size: 1.4rem;
+        }
 
-/* RODAPÉ 15 / 30 / 45 / 60 / 75 */
-.bingo-cell.footer {
-    grid-column: span 2;
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    color: #fff;
-    font-size: 1.4rem;
-}
+        .bingo-cell.marked {
+            background: #ffd700;
+            box-shadow: inset 0 0 0 3px #c9a800;
+        }
 
-/* MARCADO */
-.bingo-cell.marked {
-    background: #ffd700;
-    box-shadow: inset 0 0 0 3px #c9a800;
-}
+        .controls {
+            flex: 1;
+            background: #123a3f;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
 
-/* CONTROLES */
-.controls {
-    flex: 1;
-    min-width: 240px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 15px;
-}
+        /* TOPO */
+        .controls-top {
+            text-align: center;
+        }
 
-.controls h1 {
-    margin: 0;
-    font-size: 2.2rem;
-}
+        .controls-top h1 {
+            margin: 0;
+            font-size: 2.4rem;
+            letter-spacing: 2px;
+        }
 
-button {
-    padding: 12px 22px;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: #fff;
-    transition: all 0.2s ease;
-    width: 100%;
-}
+        /* ÁREA PRINCIPAL */
+        .controls-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
 
-button:hover:not(:disabled) {
-    transform: scale(1.05);
-}
+        button {
+            padding: 12px 22px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
 
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+        button:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
 
-.current {
-    font-size: 1.2rem;
-}
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-/* BOLA DO NÚMERO */
-.number-roll {
-    height: 120px;
-    width: 120px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #fff, #ddd);
-    color: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    font-weight: bold;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease;
-}
+        /* BOLA */
+        .number-roll {
+            height: 130px;
+            width: 130px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff, #ddd);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.2rem;
+            font-weight: bold;
+            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
+        }
 
-.number-roll.active {
-    animation: pulse 0.3s infinite alternate;
-}
+        .number-roll.active {
+            animation: pulse 0.3s infinite alternate;
+        }
 
-@keyframes pulse {
-    from { transform: scale(1); }
-    to { transform: scale(1.08); }
-}
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+            }
 
-.historico {
-    margin-top: 20px;
-    text-align: center;
-}
+            to {
+                transform: scale(1.1);
+            }
+        }
 
-.historico h3 {
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-}
+        /* HISTÓRICO */
+        .historico {
+            margin-top: 10px;
+            text-align: center;
+        }
 
-.historico-lista {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
+        .historico h3 {
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
 
-.historico-item {
-    background: #222;
-    border: 2px solid #444;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 16px;
-    color: #fff;
-}
+        .historico-lista {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
 
-#qrcode {
-    margin-top: 20px;
-}
+        .historico-item {
+            height: 70px;
+            width: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff, #ddd);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            font-weight: bold;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35);
+        }
 
-@media (max-width: 768px) {
-    .container {
-        justify-content: center;
-    }
-}
-</style>
+        /* QR */
+        #qrcode {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* RESPONSIVO */
+        @media (max-width: 768px) {
+            .container {
+                justify-content: center;
+            }
+        }
+
+        /* TABS */
+        .tabs {
+            position: relative;
+            display: flex;
+            background: #0b2629;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid #1a3a3f;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            color: #aaa;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 2;
+            transition: color 0.3s ease, transform 0.2s ease;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            color: #fff;
+        }
+
+        .tab-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            transition: transform 0.3s ease;
+            z-index: 1;
+            box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.5);
+            border-radius: 12px;
+        }
+
+        .tab-content {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tab-panel {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            animation: fadeSlide 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: flex;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
 </head>
 
 <body>
 
-<div class="container">
+    <div class="container">
 
-    <div class="bingo-board" id="bingo-board"></div>
+        <div class="bingo-board" id="bingo-board"></div>
 
-    <div class="controls">
-        <h1>BINGO</h1>
+        <div class="controls">
+            <!-- TABS -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="sorteio">SORTEIO</button>
+                <button class="tab-btn" data-tab="cartela">CARTELA</button>
+                <div class="tab-indicator"></div>
+            </div>
 
-        <button id="draw">🎰 Sortear Número</button>
+            <div class="tab-content">
 
-        <div class="number-roll" id="roll">?</div>
+                <!-- TAB SORTEIO -->
+                <div class="tab-panel active" id="sorteio">
+                    <div class="number-roll" id="roll">?</div>
 
-        <div class="current" id="current">Número Atual: -</div>
+                    <button id="draw">🎰 Sortear Número</button>
 
-        <button id="reset">🔄 Reiniciar</button>
+                </div>
 
-        <div class="historico">
-            <h3>Últimos 5 números</h3>
-            <div class="historico-lista" id="historico"></div>
+                <!-- TAB CARTELA -->
+                <div class="tab-panel" id="cartela">
+                    <p style="opacity:.8">Escaneie para gerar uma cartela aleatória</p>
+
+                    <button onclick="gerarQRCode()">Gerar QR Code</button>
+
+                    <div id="qrcode"></div>
+                </div>
+
+            </div>
+
+            <div class="historico">
+                <h3>Últimos 5 números</h3>
+                <div class="historico-lista" id="historico"></div>
+            </div>
+
         </div>
 
-        <button onclick="gerarQRCode()">Gerar QR Code</button>
-
-        <div id="qrcode"></div>
     </div>
 
-</div>
+    <script>
+        const board = document.getElementById('bingo-board');
+        const rollDisplay = document.getElementById('roll');
+        const drawBtn = document.getElementById('draw');
 
-<script>
-const board = document.getElementById('bingo-board');
-const rollDisplay = document.getElementById('roll');
-const currentDisplay = document.getElementById('current');
-const drawBtn = document.getElementById('draw');
+        const totalNumbers = 75;
+        const drawn = new Set();
+        let rolling = false;
+        const historico = [];
 
-const totalNumbers = 75;
-const drawn = new Set();
-let rolling = false;
-const historico = [];
+        function initializeBoard() {
+            board.innerHTML = '';
 
-function initializeBoard() {
-    board.innerHTML = '';
+            const columns = {
+                B: [1, 15],
+                I: [16, 30],
+                N: [31, 45],
+                G: [46, 60],
+                O: [61, 75]
+            };
 
-    const columns = {
-        B: [1, 15],
-        I: [16, 30],
-        N: [31, 45],
-        G: [46, 60],
-        O: [61, 75]
-    };
+            /* CABEÇALHO */
+            for (const col in columns) {
+                const h = document.createElement('div');
+                h.className = 'bingo-cell header';
+                h.textContent = col;
+                board.appendChild(h);
+            }
 
-    /* CABEÇALHO */
-    for (const col in columns) {
-        const h = document.createElement('div');
-        h.className = 'bingo-cell header';
-        h.textContent = col;
-        board.appendChild(h);
-    }
+            /* NÚMEROS NORMAIS */
+            for (let row = 0; row < 7; row++) {
+                for (const col in columns) {
+                    const [start, end] = columns[col];
+                    const n1 = start + row * 2;
+                    const n2 = n1 + 1;
 
-    /* NÚMEROS NORMAIS */
-    for (let row = 0; row < 7; row++) {
-        for (const col in columns) {
-            const [start, end] = columns[col];
-            const n1 = start + row * 2;
-            const n2 = n1 + 1;
+                    if (n1 < end) createCell(n1);
+                    if (n2 < end) createCell(n2);
+                }
+            }
 
-            if (n1 < end) createCell(n1);
-            if (n2 < end) createCell(n2);
+            /* RODAPÉ GRANDE */
+            for (const col in columns) {
+                const end = columns[col][1];
+                const f = document.createElement('div');
+                f.className = 'bingo-cell footer';
+                f.textContent = end;
+                f.id = `cell-${end}`;
+                board.appendChild(f);
+            }
         }
-    }
 
-    /* RODAPÉ GRANDE */
-    for (const col in columns) {
-        const end = columns[col][1];
-        const f = document.createElement('div');
-        f.className = 'bingo-cell footer';
-        f.textContent = end;
-        f.id = `cell-${end}`;
-        board.appendChild(f);
-    }
-}
-
-function createCell(number) {
-    const cell = document.createElement('div');
-    cell.className = 'bingo-cell';
-    cell.textContent = number;
-    cell.id = `cell-${number}`;
-    board.appendChild(cell);
-}
-
-function drawNumber() {
-    if (rolling || drawn.size === totalNumbers) return;
-
-    rolling = true;
-    drawBtn.disabled = true;
-    rollDisplay.classList.add('active');
-
-    let number;
-    do {
-        number = Math.floor(Math.random() * totalNumbers) + 1;
-    } while (drawn.has(number));
-
-    animate(number);
-}
-
-function animate(finalNumber) {
-    let count = 0;
-
-    function spin() {
-        rollDisplay.textContent = Math.floor(Math.random() * totalNumbers) + 1;
-        count++;
-
-        if (count > 20) {
-            finalize(finalNumber);
-        } else {
-            setTimeout(spin, 60 + count * 8);
+        function createCell(number) {
+            const cell = document.createElement('div');
+            cell.className = 'bingo-cell';
+            cell.textContent = number;
+            cell.id = `cell-${number}`;
+            board.appendChild(cell);
         }
-    }
 
-    spin();
-}
+        function drawNumber() {
+            if (rolling || drawn.size === totalNumbers) return;
 
-function finalize(number) {
-    drawn.add(number);
-    rollDisplay.textContent = number;
-    currentDisplay.textContent = `Número Atual: ${number}`;
+            rolling = true;
+            drawBtn.disabled = true;
+            rollDisplay.classList.add('active');
 
-    const cell = document.getElementById(`cell-${number}`);
-    if (cell) cell.classList.add('marked');
+            let number;
+            do {
+                number = Math.floor(Math.random() * totalNumbers) + 1;
+            } while (drawn.has(number));
 
-    historico.unshift(number);
-    if (historico.length > 5) historico.pop();
-    atualizarHistorico();
+            animate(number);
+        }
 
-    rollDisplay.classList.remove('active');
-    drawBtn.disabled = false;
-    rolling = false;
-}
+        function animate(finalNumber) {
+            let count = 0;
 
-function atualizarHistorico() {
-    const container = document.getElementById('historico');
-    container.innerHTML = '';
+            function spin() {
+                rollDisplay.textContent = Math.floor(Math.random() * totalNumbers) + 1;
+                count++;
 
-    historico.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'historico-item';
-        div.textContent = item;
-        container.appendChild(div);
-    });
-}
+                if (count > 20) {
+                    finalize(finalNumber);
+                } else {
+                    setTimeout(spin, 60 + count * 8);
+                }
+            }
 
-function gerarQRCode() {
-    document.getElementById("qrcode").innerHTML = "";
+            spin();
+        }
 
-    const id = Math.random().toString(36).substring(2, 10);
+        function finalize(number) {
+            drawn.add(number);
+            rollDisplay.textContent = number;
 
-    // Substitua 'seu-username' pelo seu username do GitHub
-    const url = `https://tavinscapi.github.io/BINGO/cartela.html?id=${id}`;
+            const cell = document.getElementById(`cell-${number}`);
+            if (cell) cell.classList.add('marked');
 
-    new QRCode(document.getElementById("qrcode"), {
-        text: url,
-        width: 200,
-        height: 200
-    });
-}
+            historico.unshift(number);
+            if (historico.length > 5) historico.pop();
+            atualizarHistorico();
 
-document.getElementById('draw').addEventListener('click', drawNumber);
+            rollDisplay.classList.remove('active');
+            drawBtn.disabled = false;
+            rolling = false;
+        }
 
-document.getElementById('reset').addEventListener('click', () => {
-    drawn.clear();
-    document.querySelectorAll('.marked').forEach(c => c.classList.remove('marked'));
-    rollDisplay.textContent = '?';
-    currentDisplay.textContent = 'Número Atual: -';
-    historico.length = 0;
-    atualizarHistorico();
-});
+        function atualizarHistorico() {
+            const container = document.getElementById('historico');
+            container.innerHTML = '';
 
-initializeBoard();
-</script>
+            historico.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'historico-item';
+                div.textContent = item;
+                container.appendChild(div);
+            });
+        }
+
+        function gerarQRCode() {
+            document.getElementById("qrcode").innerHTML = "";
+
+            const id = Math.random().toString(36).substring(2, 10);
+
+            // Substitua 'seu-username' pelo seu username do GitHub
+            const url = `https://tavinscapi.github.io/BINGO/cartela.html?id=${id}`;
+
+            new QRCode(document.getElementById("qrcode"), {
+                text: url,
+                width: 200,
+                height: 200
+            });
+
+            // Auto-regenerar a cada 60 segundos
+            setTimeout(gerarQRCode, 10000);
+        }
+
+        document.getElementById('draw').addEventListener('click', drawNumber);
+
+        initializeBoard();
+
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+        const indicator = document.querySelector('.tab-indicator');
+
+        tabButtons.forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+
+                tabButtons.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+
+                indicator.style.transform = `translateX(${index * 100}%)`;
+            });
+        });
+
+    </script>
 
 </body>
+
 </html>
