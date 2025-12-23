@@ -1,144 +1,158 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<title>Minha Cartela</title>
+    <meta charset="UTF-8">
+    <title>Minha Cartela</title>
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #0f2e32;
-    color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f3d2e, #1e7f43);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-.cartela {
-    display: grid;
-    grid-template-columns: repeat(5, 75px);
-    gap: 8px;
-    background: #123a3f;
-    padding: 15px;
-    border-radius: 16px;
-    box-shadow: 0 15px 40px rgba(0,0,0,.5);
-}
+        /* DESKTOP */
+        .cartela {
+            display: grid;
+            grid-template-columns: repeat(5, 110px);
+            gap: 12px;
+            background: #0b2f22;
+            padding: 24px;
+            border-radius: 22px;
+            border: 3px solid #1e7f43;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .55);
+        }
 
-.celula {
-    width: 75px;
-    height: 75px;
-    background: #f5f5f5;
-    color: #000;
-    font-size: 20px;
-    font-weight: bold;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: .2s;
-}
+        .celula {
+            width: 110px;
+            height: 110px;
+            background: #fdfdfd;
+            color: #000;
+            font-size: 28px;
+            font-weight: bold;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-.celula:hover {
-    transform: scale(1.05);
-}
+        .celula:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
+        }
 
-.celula.marcada {
-    background: #ffd700;
-    box-shadow: inset 0 0 0 3px #c9a800;
-}
+        .celula.marcada {
+            background: #ffd700;
+            box-shadow: inset 0 0 0 4px #c9a800;
+        }
 
-.celula.free {
-    background: #222;
-    cursor: default;
-    padding: 0;
-}
+        .celula.free {
+            background: linear-gradient(135deg, #c62828, #8e1b1b);
+            cursor: default;
+            padding: 0;
+            box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.6);
+        }
 
-.celula.free img {
-    width: 70%;
-    height: auto;
-}
+        .celula.free img {
+            width: 70%;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+        }
 
-@media (max-width: 600px) {
-    .cartela {
-        grid-template-columns: repeat(5, 50px);
-        gap: 5px;
-        padding: 10px;
-    }
-    .celula {
-        width: 50px;
-        height: 50px;
-        font-size: 16px;
-    }
-    .celula.free img {
-        width: 60%;
-    }
-}
-</style>
+        /* 📱 CELULAR – GRANDE DE VERDADE */
+        @media (max-width: 768px) {
+            .cartela {
+                grid-template-columns: repeat(5, 18vw);
+                gap: 2vw;
+                padding: 3vw;
+            }
+
+            .celula {
+                width: 18vw;
+                height: 18vw;
+                font-size: 6vw;
+                border-radius: 4vw;
+            }
+
+            .celula.marcada {
+                box-shadow: inset 0 0 0 0.8vw #c9a800;
+            }
+        }
+
+        /* 📱 TELAS MUITO PEQUENAS */
+        @media (max-width: 380px) {
+            .celula {
+                font-size: 6.5vw;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="cartela" id="cartela"></div>
+    <div class="cartela" id="cartela"></div>
 
-<script>
-// ===== Random com seed (QR Code) =====
-function seedRandom(seed) {
-    let h = 0;
-    for (let i = 0; i < seed.length; i++) {
-        h = seed.charCodeAt(i) + ((h << 5) - h);
-    }
-    return function() {
-        h = Math.imul(48271, h) % 2147483647;
-        return (h & 2147483647) / 2147483647;
-    };
-}
-
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id") || "default";
-const random = seedRandom(id);
-
-// ===== Gerar números =====
-function gerarNumeros(min, max) {
-    const nums = [];
-    while (nums.length < 5) {
-        const n = Math.floor(random() * (max - min + 1)) + min;
-        if (!nums.includes(n)) nums.push(n);
-    }
-    return nums;
-}
-
-const colunas = [
-    gerarNumeros(1, 15),
-    gerarNumeros(16, 30),
-    gerarNumeros(31, 45),
-    gerarNumeros(46, 60),
-    gerarNumeros(61, 75)
-];
-
-const cartela = document.getElementById("cartela");
-
-// ===== Render da cartela =====
-for (let linha = 0; linha < 5; linha++) {
-    for (let coluna = 0; coluna < 5; coluna++) {
-
-        const cell = document.createElement("div");
-        cell.classList.add("celula");
-
-        // CENTRO = FREE
-        if (linha === 2 && coluna === 2) {
-            cell.classList.add("free");
-            cell.innerHTML = `<img src="mcratao.jpg" alt="FREE">`;
-        } else {
-            cell.textContent = colunas[coluna][linha];
-            cell.onclick = () => cell.classList.toggle("marcada");
+    <script>
+        function seedRandom(seed) {
+            let h = 0;
+            for (let i = 0; i < seed.length; i++) {
+                h = seed.charCodeAt(i) + ((h << 5) - h);
+            }
+            return function () {
+                h = Math.imul(48271, h) % 2147483647;
+                return (h & 2147483647) / 2147483647;
+            };
         }
 
-        cartela.appendChild(cell);
-    }
-}
-</script>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id") || "default";
+        const random = seedRandom(id);
+
+        function gerarNumeros(min, max) {
+            const nums = [];
+            while (nums.length < 5) {
+                const n = Math.floor(random() * (max - min + 1)) + min;
+                if (!nums.includes(n)) nums.push(n);
+            }
+            return nums;
+        }
+
+        const colunas = [
+            gerarNumeros(1, 15),
+            gerarNumeros(16, 30),
+            gerarNumeros(31, 45),
+            gerarNumeros(46, 60),
+            gerarNumeros(61, 75)
+        ];
+
+        const cartela = document.getElementById("cartela");
+
+        for (let linha = 0; linha < 5; linha++) {
+            for (let coluna = 0; coluna < 5; coluna++) {
+
+                const cell = document.createElement("div");
+                cell.classList.add("celula");
+
+                if (linha === 2 && coluna === 2) {
+                    cell.classList.add("free");
+                    cell.innerHTML = `<img src="a.webp" alt="FREE">`;
+                } else {
+                    cell.textContent = colunas[coluna][linha];
+                    cell.onclick = () => cell.classList.toggle("marcada");
+                }
+
+                cartela.appendChild(cell);
+            }
+        }
+    </script>
 
 </body>
+
 </html>
