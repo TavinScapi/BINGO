@@ -59,6 +59,22 @@ body {
     width: 70%;
     height: auto;
 }
+
+@media (max-width: 600px) {
+    .cartela {
+        grid-template-columns: repeat(5, 50px);
+        gap: 5px;
+        padding: 10px;
+    }
+    .celula {
+        width: 50px;
+        height: 50px;
+        font-size: 16px;
+    }
+    .celula.free img {
+        width: 60%;
+    }
+}
 </style>
 </head>
 
@@ -113,7 +129,7 @@ for (let linha = 0; linha < 5; linha++) {
         // CENTRO = FREE
         if (linha === 2 && coluna === 2) {
             cell.classList.add("free");
-            cell.innerHTML = `<img src="mcratao.png" alt="FREE">`;
+            cell.innerHTML = `<img src="mcratao.jpg" alt="FREE">`;
         } else {
             cell.textContent = colunas[coluna][linha];
             cell.onclick = () => cell.classList.toggle("marcada");
